@@ -13,8 +13,8 @@ A Burp Suite extension designed to help organize penetration testing activities.
 
 ## Screenshoot
 <p align="center">
-<a href="https://github.com/luqmanhy/burp-organizer-notes"><img src="/static/orgnotes.png" alt="Organizer Notes"></a><br><br>
-<a href="https://github.com/luqmanhy/burp-organizer-notes"><img src="/static/orgnotes-2.png" alt="Organizer Notes"></a>
+<a href="https://github.com/luqmanhy/burp-organizer-notes"><img src="/static/orgnotes.jpg" alt="Organizer Notes"></a><br><br>
+<a href="https://github.com/luqmanhy/burp-organizer-notes"><img src="/static/orgnotes-2.jpg" alt="Organizer Notes"></a>
 <a href="https://github.com/luqmanhy/burp-organizer-notes"><img src="/static/orgnotes-3.png" alt="Organizer Notes"></a>
 
 </p>
