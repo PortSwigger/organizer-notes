@@ -1,16 +1,19 @@
+package models;
+
 import java.util.Objects;
 
-public record Notes(String notes) {
+public record Category(String category) {
     @Override
     public String toString() {
-        return notes;
+        return category;
     }
 
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
-        Notes notes = (Notes) obj;
-        return Objects.equals(this.notes, notes.notes);
+        Category category = (Category) obj;
+        return Objects.equals(this.category, category.category);
     }
+
 }

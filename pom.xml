@@ -6,7 +6,7 @@
 
     <groupId>org.example</groupId>
     <artifactId>organizer-notes</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -20,11 +20,6 @@
             <artifactId>montoya-api</artifactId>
             <version>LATEST</version>
         </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>2.15.0</version>
-            </dependency>
     </dependencies>
 
 </project>
