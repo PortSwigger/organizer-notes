@@ -1,24 +1,21 @@
 package storages;
 
-import burp.api.montoya.logging.Logging;
 import burp.api.montoya.persistence.Persistence;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import models.Category;
 
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class CategoryStorage {
     private static final String STORAGE_KEY = "category_db";
     private final Persistence persistence;
     private final List<Category> categories;
 
-    private static final String ROW_DELIMITER = "\n";
 
     public CategoryStorage(Persistence persistence) {
         this.persistence = persistence;
@@ -51,12 +48,10 @@ public class CategoryStorage {
     }
 
     private void saveCategories() {
-        String serialized = this.categories.stream()
-                .map(category ->
-                        URLEncoder.encode(category.category(), StandardCharsets.UTF_8)
-                )
-                .collect(Collectors.joining(ROW_DELIMITER));
-        persistence.preferences().setString(STORAGE_KEY, serialized);
+        Gson gson = new Gson();
+        String json = gson.toJson(this.categories);
+
+        persistence.preferences().setString(STORAGE_KEY, json);
     }
 
     private List<Category> loadCategories() {
@@ -66,13 +61,12 @@ public class CategoryStorage {
             return new ArrayList<>();
         }
 
-        List<Category> loadedData = new ArrayList<>();
-
-        for (String encodedData : savedData.split(Pattern.quote(ROW_DELIMITER))) {
-            String decodedData = URLDecoder.decode(encodedData, StandardCharsets.UTF_8);
-            loadedData.add(new Category(decodedData));
+        Gson gson = new Gson();
+        Type listType = new TypeToken<List<Category>>() {}.getType();
+        try {
+            return gson.fromJson(savedData, listType);
+        } catch (JsonSyntaxException e) {
+            return new ArrayList<>();
         }
-
-        return loadedData;
     }
 }

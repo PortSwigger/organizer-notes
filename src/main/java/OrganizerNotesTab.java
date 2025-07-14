@@ -1,6 +1,7 @@
 
-import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import models.Category;
 import models.Notes;
 import storages.CategoryStorage;
@@ -12,12 +13,12 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -53,20 +54,15 @@ public class OrganizerNotesTab {
         column.setMaxWidth(50);
         column.setMinWidth(50);
 
-        updateNotesTable();
+        refreshNotesTable();
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JButton manageCategoryButton = new JButton("Manage Category");
-        manageCategoryButton.addActionListener(e -> {
-            CategoryManagerDialog dialog = new CategoryManagerDialog(logging, panel, categoryStorage, notesStorage);
-            dialog.setModal(true);
-            dialog.setVisible(true);
+        manageCategoryButton.addActionListener(e -> new CategoryManagerDialog( panel, this, categoryStorage, notesStorage));
 
-            updateNotesTable();
-        });
 
         JButton addButton = new JButton("Add Notes");
         addButton.addActionListener(this::addNotes);
@@ -136,7 +132,7 @@ public class OrganizerNotesTab {
             int confirm = JOptionPane.showConfirmDialog(panel, "Delete selected notes?", "Confirm", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
                 notesStorage.deleteNote(selectedRow);
-                updateNotesTable();
+                refreshNotesTable();
             }
         } else {
             JOptionPane.showMessageDialog(panel, "Please select a notes to delete!", "Warning", JOptionPane.WARNING_MESSAGE);
@@ -186,7 +182,7 @@ public class OrganizerNotesTab {
                 JOptionPane.showMessageDialog(null, "Notes already exists", "Error", JOptionPane.ERROR_MESSAGE);
             } else {
                 notesStorage.addNote(newNote);
-                updateNotesTable();
+                refreshNotesTable();
             }
         }
     }
@@ -239,13 +235,13 @@ public class OrganizerNotesTab {
         if (result == JOptionPane.OK_OPTION && !newContent.isEmpty()) {
             Notes updatedNote = new Notes(newContent, new Category(newCategory));
             notesStorage.updateNote(selectedRow, updatedNote);
-            updateNotesTable();
+            refreshNotesTable();
         } else if (result == JOptionPane.OK_OPTION) {
             JOptionPane.showMessageDialog(panel, "Notes cannot be empty!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void updateNotesTable() {
+    public void refreshNotesTable() {
         tableModel.setRowCount(0);
         List<Notes> notes = notesStorage.getNotes();
         for (int i = 0; i < notes.size(); i++) {
@@ -253,8 +249,6 @@ public class OrganizerNotesTab {
         }
     }
 
-    private static final String FIELD_DELIMITER = ",";
-    private static final String ROW_DELIMITER = "\n";
 
     private void exportNotes(ActionEvent e) {
         JFileChooser fileChooser = new JFileChooser();
@@ -262,27 +256,22 @@ public class OrganizerNotesTab {
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
 
-            if (!file.getName().toLowerCase().endsWith(".txt")) {
-                file = new File(file.getAbsolutePath() + ".txt");
+            if (!file.getName().toLowerCase().endsWith(".json")) {
+                file = new File(file.getAbsolutePath() + ".json");
             }
 
             try (FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8)) {
-                List<Notes> notesList = notesStorage.getNotes();
+                List<Notes> notestList = notesStorage.getNotes();
 
-                if (notesList == null || notesList.isEmpty()) {
+                if (notestList == null || notestList.isEmpty()) {
                     JOptionPane.showMessageDialog(null, "No notes to export!", "Warning", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
-                String content = notesList.stream()
-                        .map(note -> {
-                            String encodedNote = URLEncoder.encode(note.notes(), StandardCharsets.UTF_8);
-                            String encodedCategory = URLEncoder.encode(note.category().category(), StandardCharsets.UTF_8);
-                            return encodedNote + FIELD_DELIMITER + encodedCategory;
-                        })
-                        .collect(Collectors.joining(ROW_DELIMITER));
+                Gson gson = new Gson();
+                String json = gson.toJson(notestList);
+                writer.write(json);
 
-                writer.write(content);
                 JOptionPane.showMessageDialog(null, "Notes exported successfully to: " + file.getAbsolutePath());
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(null, "Error exporting notes: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -304,33 +293,21 @@ public class OrganizerNotesTab {
                     return;
                 }
 
-                List<Notes> importedNotes = new ArrayList<>();
-                List<Category> importedCategory = new ArrayList<>();
-                for (String encodedLine : content.split(Pattern.quote(ROW_DELIMITER))) {
-                    String[] fields = encodedLine.split(Pattern.quote(FIELD_DELIMITER));
-                    if (fields.length < 1) continue;
+                Gson gson = new Gson();
+                Type listType = new TypeToken<List<Notes>>() {}.getType();
+                List<Notes> importedNotes = gson.fromJson(content, listType);
 
-                    String decodedNote = URLDecoder.decode(fields[0], StandardCharsets.UTF_8);
-                    String decodedCategory = fields.length > 1
-                            ? URLDecoder.decode(fields[1], StandardCharsets.UTF_8)
-                            : "";
-                    importedNotes.add(new Notes(decodedNote, new Category(decodedCategory)));
-                    importedCategory.add(new Category(decodedCategory));
-                }
+                for (Notes newNotes : importedNotes) {
+                    if (!notesStorage.getNotes().contains(newNotes)) {
+                        notesStorage.addNote(newNotes);
+                    }
 
-                for (Notes note : importedNotes) {
-                    if (!notesStorage.getNotes().contains(note)) {
-                        notesStorage.addNote(note);
+                    if (!categoryStorage.getCategories().contains(newNotes.category())) {
+                        categoryStorage.addCategory(newNotes.category());
                     }
                 }
 
-                for (Category category : importedCategory) {
-                    if (!categoryStorage.getCategories().contains(category)) {
-                        categoryStorage.addCategory(category);
-                    }
-                }
-
-                updateNotesTable();
+                refreshNotesTable();
                 JOptionPane.showMessageDialog(null, "Notes imported successfully");
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(null, "Error importing notes: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

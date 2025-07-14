@@ -1,4 +1,3 @@
-import burp.api.montoya.logging.Logging;
 import models.Category;
 import storages.CategoryStorage;
 import storages.NotesStorage;
@@ -8,8 +7,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class CategoryManagerDialog extends JDialog {
@@ -17,12 +14,12 @@ public class CategoryManagerDialog extends JDialog {
     private JTable categoryTable;
     private final CategoryStorage categoryStorage;
     private final NotesStorage notesStorage;
-    private final Logging logging;
+    private OrganizerNotesTab organizerNotesTab;
 
-    public CategoryManagerDialog(Logging logging, Component parent, CategoryStorage categoryStorage, NotesStorage notesStorage) {
+    public CategoryManagerDialog( Component parent, OrganizerNotesTab organizerNotesTab, CategoryStorage categoryStorage, NotesStorage notesStorage) {
         this.categoryStorage = categoryStorage;
         this.notesStorage = notesStorage;
-        this.logging = logging;
+        this.organizerNotesTab = organizerNotesTab;
 
         setTitle("Manage Categories");
         setModal(true);
@@ -43,7 +40,7 @@ public class CategoryManagerDialog extends JDialog {
         column.setMaxWidth(50);
         column.setMinWidth(50);
 
-        loadCategoryData();
+        refreshTable();
 
         JScrollPane scrollPane = new JScrollPane(categoryTable);
 
@@ -68,9 +65,11 @@ public class CategoryManagerDialog extends JDialog {
         setVisible(true);
     }
 
-    private void loadCategoryData() {
-        categoryTableModel.setRowCount(0); // Clear existing rows
 
+
+    private void refreshTable() {
+        categoryTableModel.setRowCount(0); // Clear existing rows
+        organizerNotesTab.refreshNotesTable();
         List<Category> categories = categoryStorage.getCategories();
         for (int i = 0; i < categories.size(); i++) {
             categoryTableModel.addRow(new Object[]{i + 1, categories.get(i).category()});
@@ -82,7 +81,7 @@ public class CategoryManagerDialog extends JDialog {
         if (name != null && !name.trim().isEmpty()) {
             categoryStorage.addCategory(new Category(name));
 
-            loadCategoryData();
+            refreshTable();
         }
     }
 
@@ -94,7 +93,7 @@ public class CategoryManagerDialog extends JDialog {
             if (newName != null && !newName.trim().isEmpty()) {
                 categoryStorage.updateCategory(selectedRow, new Category(newName));
                 notesStorage.updateNotesCategory(currentName,newName);
-                loadCategoryData();
+                refreshTable();
             }
         } else {
             JOptionPane.showMessageDialog(this, "Please select a category to edit!","Warning", JOptionPane.WARNING_MESSAGE);
@@ -109,7 +108,7 @@ public class CategoryManagerDialog extends JDialog {
                 categoryStorage.deleteCategory(selectedRow);
                 notesStorage.updateNotesCategory((String) categoryTableModel.getValueAt(selectedRow, 1),
                         "");
-                loadCategoryData();
+                refreshTable();
             }
         } else {
             JOptionPane.showMessageDialog(this, "Please select a category to delete!","Warning", JOptionPane.WARNING_MESSAGE);

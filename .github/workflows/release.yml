@@ -48,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: built-jar
-          path: target/*.jar
+          path: target/${{ env.REPO_NAME }}*.jar
 
   ci-release:
     runs-on: ubuntu-latest

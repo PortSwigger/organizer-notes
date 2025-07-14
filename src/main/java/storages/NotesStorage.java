@@ -1,24 +1,21 @@
 package storages;
 
 import burp.api.montoya.persistence.Persistence;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import models.Category;
 import models.Notes;
 
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 import java.util.Collections;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class NotesStorage {
     private static final String STORAGE_KEY = "notes_db";
-    private static final String ROW_DELIMITER = "\n";
-    private static final String FIELD_DELIMITER = ",";
-
     private final Persistence persistence;
     private final List<Notes> notes;
 
@@ -73,16 +70,10 @@ public class NotesStorage {
     }
 
     private void saveNotes() {
-        String serializedNotes = notes.stream()
-                .map(note -> {
-                    String encodedNote = URLEncoder.encode(note.notes(), StandardCharsets.UTF_8);
-                    String encodedCategory;
-                    encodedCategory = URLEncoder.encode(note.category().category(), StandardCharsets.UTF_8);
-                    return encodedNote + FIELD_DELIMITER + encodedCategory;
-                })
-                .collect(Collectors.joining(ROW_DELIMITER));
+        Gson gson = new Gson();
+        String json = gson.toJson(notes);
 
-        persistence.preferences().setString(STORAGE_KEY, serializedNotes);
+        persistence.preferences().setString(STORAGE_KEY, json);
     }
 
     private List<Notes> loadNotes() {
@@ -92,18 +83,13 @@ public class NotesStorage {
             return new ArrayList<>();
         }
 
-        List<Notes> loadedNotes = new ArrayList<>();
-
-        for (String encodedText : savedData.split(Pattern.quote(ROW_DELIMITER))) {
-            String[] fields = encodedText.split(Pattern.quote(FIELD_DELIMITER));
-            String decodedNote = URLDecoder.decode(fields[0], StandardCharsets.UTF_8);
-            String decodedCategory = fields.length > 1
-                    ? URLDecoder.decode(fields[1], StandardCharsets.UTF_8)
-                    : "";
-            loadedNotes.add(new Notes(decodedNote, new Category(decodedCategory)));
+        Gson gson = new Gson();
+        Type categoryListType = new TypeToken<List<Notes>>() {}.getType();
+        try {
+            return gson.fromJson(savedData, categoryListType);
+        } catch (JsonSyntaxException e) {
+            return new ArrayList<>();
         }
-
-        return loadedNotes;
     }
 
     public void updateNotesCategory(String oldCategory, String newCategory) {
