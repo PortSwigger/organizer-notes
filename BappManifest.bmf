@@ -3,7 +3,7 @@ ExtensionType: 1
 Name: Organizer Notes
 RepoName: organizer-notes
 ScreenVersion: 0.0.3
-SerialVersion: 1
+SerialVersion: 2
 MinPlatformVersion: 23
 ProOnly: False
 Author: luqmanhy
