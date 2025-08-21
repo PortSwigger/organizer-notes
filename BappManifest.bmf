@@ -7,7 +7,7 @@ SerialVersion: 1
 MinPlatformVersion: 23
 ProOnly: False
 Author: luqmanhy
-ShortDescription: This extension streamlines pentesting workflow by automatically attaching notes to HTTP requests saved in Organizer, simplifying note-taking during pentesting.
+ShortDescription: Automatically attach notes to HTTP requests saved in Organizer, simplifying note-taking during pentesting.
 EntryPoint: organizer-notes-0.0.3-jar-with-dependencies.jar
 BuildCommand: mvn clean install
 SupportedProducts: Pro, Community
