@@ -126,18 +126,18 @@ public class OrganizerNotesTab {
 
 
     private void deleteNotes(ActionEvent e) {
-
-        int selectedRow = notesTable.getSelectedRow();
-        if (selectedRow >= 0) {
-            int confirm = JOptionPane.showConfirmDialog(panel, "Delete selected notes?", "Confirm", JOptionPane.YES_NO_OPTION);
+        int[] selectedRows = notesTable.getSelectedRows();
+        if (selectedRows.length > 0) {
+            int confirm = JOptionPane.showConfirmDialog(panel, "Delete " + selectedRows.length + " selected notes?", "Confirm", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                notesStorage.deleteNote(selectedRow);
+                for (int i = selectedRows.length - 1; i >= 0; i--) {
+                    notesStorage.deleteNote(selectedRows[i]);
+                }
                 refreshNotesTable();
             }
         } else {
-            JOptionPane.showMessageDialog(panel, "Please select a notes to delete!", "Warning", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(panel, "Please select notes to delete!", "Warning", JOptionPane.WARNING_MESSAGE);
         }
-
     }
 
 
@@ -188,6 +188,15 @@ public class OrganizerNotesTab {
     }
 
     private void editNotes(ActionEvent e) {
+        int[] selectedRows = notesTable.getSelectedRows();
+        if (selectedRows.length > 1) {
+            JOptionPane.showMessageDialog(panel,
+                    "You can only edit one note at a time!",
+                    "Warning",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         int selectedRow = notesTable.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(panel, "Please select a notes to edit!", "Warning", JOptionPane.WARNING_MESSAGE);

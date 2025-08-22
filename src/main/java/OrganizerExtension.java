@@ -18,7 +18,6 @@ public class OrganizerExtension implements BurpExtension {
         ui.registerSuiteTab("OrgNotes", organizerNotesTab.getPanel());
 
         api.logging().logToOutput("Organizer Notes loaded!");
-
         api.userInterface().registerContextMenuItemsProvider(new SendToOrganizerMenu(api, notesStorage,categoryStorage));
     }
 }
