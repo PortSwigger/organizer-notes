@@ -86,6 +86,15 @@ public class CategoryManagerDialog extends JDialog {
     }
 
     private void editCategory() {
+        int[] selectedRows = categoryTable.getSelectedRows();
+        if (selectedRows.length > 1) {
+            JOptionPane.showMessageDialog(this,
+                    "You can only edit one note at a time!",
+                    "Warning",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         int selectedRow = categoryTable.getSelectedRow();
         if (selectedRow >= 0) {
             String currentName = (String) categoryTableModel.getValueAt(selectedRow, 1);
@@ -101,17 +110,22 @@ public class CategoryManagerDialog extends JDialog {
     }
 
     private void deleteCategory() {
-        int selectedRow = categoryTable.getSelectedRow();
-        if (selectedRow >= 0) {
-            int confirm = JOptionPane.showConfirmDialog(this, "Delete selected category?", "Confirm", JOptionPane.YES_NO_OPTION);
+        int[] selectedRows = categoryTable.getSelectedRows();
+        if (selectedRows.length > 0) {
+            int confirm = JOptionPane.showConfirmDialog(this, "Delete " + selectedRows.length + " selected category(s)?", "Confirm", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                categoryStorage.deleteCategory(selectedRow);
-                notesStorage.updateNotesCategory((String) categoryTableModel.getValueAt(selectedRow, 1),
-                        "");
+                for (int i = selectedRows.length - 1; i >= 0; i--) {
+                    int rowIndex = selectedRows[i];
+                    String categoryName = (String) categoryTableModel.getValueAt(rowIndex, 1);
+
+                    categoryStorage.deleteCategory(rowIndex);
+                    notesStorage.updateNotesCategory(categoryName, "");
+                }
                 refreshTable();
             }
         } else {
             JOptionPane.showMessageDialog(this, "Please select a category to delete!","Warning", JOptionPane.WARNING_MESSAGE);
         }
     }
+
 }
