@@ -2,12 +2,12 @@ Uuid: bb614d01ab55447d88647bbc8ec09b51
 ExtensionType: 1
 Name: Organizer Notes
 RepoName: organizer-notes
-ScreenVersion: 0.0.3
-SerialVersion: 2
+ScreenVersion: 0.0.4
+SerialVersion: 3
 MinPlatformVersion: 23
 ProOnly: False
-Author: luqmanhy
+Author: Luqman Hakim Y
 ShortDescription: Automatically attach notes to HTTP requests saved in Organizer, simplifying note-taking during pentesting.
-EntryPoint: organizer-notes-0.0.3-jar-with-dependencies.jar
+EntryPoint: organizer-notes-0.0.4.jar
 BuildCommand: mvn clean install
 SupportedProducts: Pro, Community
