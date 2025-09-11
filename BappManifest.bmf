@@ -3,11 +3,11 @@ ExtensionType: 1
 Name: Organizer Notes
 RepoName: organizer-notes
 ScreenVersion: 0.0.4
-SerialVersion: 4
+SerialVersion: 5
 MinPlatformVersion: 23
 ProOnly: False
 Author: Luqman Hakim Y
 ShortDescription: Automatically attach notes to HTTP requests saved in Organizer, simplifying note-taking during pentesting.
-EntryPoint: organizer-notes-0.0.4.jar
+EntryPoint: organizer-notes-0.0.4-jar-with-dependencies.jar
 BuildCommand: mvn clean package
 SupportedProducts: Pro, Community
